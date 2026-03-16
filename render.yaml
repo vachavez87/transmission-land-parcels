@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: transmission-land-parcels
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        sync: false          # set manually in the Render dashboard
+      - key: REGRID_API_KEY
+        sync: false          # set manually in the Render dashboard
