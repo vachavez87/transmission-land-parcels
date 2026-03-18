@@ -19,6 +19,7 @@ Run
 import json
 import logging
 import os
+import threading
 from pathlib import Path
 
 import geopandas as gpd
@@ -46,6 +47,8 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ── global pipeline state (loaded once on startup) ─────────────────────────
 _state: dict = {}
+_pipeline_ready = False
+_pipeline_error: str = ""
 
 
 def _run_pipeline() -> None:
@@ -98,6 +101,8 @@ def _run_pipeline() -> None:
         ),
     }
     logger.info("Pipeline complete. %d parcels scored.", len(scored))
+    global _pipeline_ready
+    _pipeline_ready = True
 
 
 # ── helpers ────────────────────────────────────────────────────────────────
@@ -124,9 +129,19 @@ def _project_geojson(gdf: gpd.GeoDataFrame) -> dict:
 
 # ── routes ─────────────────────────────────────────────────────────────────
 
+@app.route("/health")
+def health():
+    """Health check endpoint for Render — responds immediately."""
+    if _pipeline_ready:
+        return jsonify({"status": "ok"}), 200
+    return jsonify({"status": "starting"}), 200
+
+
 @app.route("/")
 def dashboard():
     """Main dashboard page."""
+    if not _pipeline_ready:
+        return "<html><body style='background:#111;color:#0f0;font-family:monospace;padding:2rem'><h2>Pipeline initializing, please wait...</h2><script>setTimeout(()=>location.reload(),3000)</script></body></html>", 503
     scored = _state.get("scored_gdf", gpd.GeoDataFrame())
     pc     = _state.get("priority_counts", {})
 
@@ -240,8 +255,18 @@ def api_refresh():
 
 
 # ── startup ────────────────────────────────────────────────────────────────
-# Run pipeline at import time so both `python server.py` and gunicorn work.
-_run_pipeline()
+# Run pipeline in a background thread so Flask can start immediately and
+# respond to Render's health checks before the heavy analysis finishes.
+def _pipeline_thread():
+    global _pipeline_error
+    try:
+        _run_pipeline()
+    except Exception as exc:  # noqa: BLE001
+        _pipeline_error = str(exc)
+        logger.exception("Pipeline failed: %s", exc)
+
+
+threading.Thread(target=_pipeline_thread, daemon=True).start()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
