@@ -41,8 +41,9 @@ logger = logging.getLogger(__name__)
 # ── app setup ──────────────────────────────────────────────────────────────
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-DATA_DIR   = Path("data")
-OUTPUT_DIR = Path("output")
+BASE_DIR   = Path(__file__).resolve().parent
+DATA_DIR   = BASE_DIR / "data"
+OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ── global pipeline state (loaded once on startup) ─────────────────────────
@@ -62,7 +63,7 @@ def _run_pipeline() -> None:
     parcel_file = DATA_DIR / "sample_parcels.geojson"
 
     if not proj_file.exists() or not parcel_file.exists():
-        projects_gdf, parcels_gdf = generate_all_sample_data()
+        projects_gdf, parcels_gdf = generate_all_sample_data(output_dir=str(DATA_DIR))
     else:
         projects_gdf = gpd.read_file(proj_file)
         parcels_gdf  = gpd.read_file(parcel_file)

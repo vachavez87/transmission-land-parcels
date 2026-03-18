@@ -2,12 +2,12 @@
 .env
 *.env
 
-# Generated output
-output/
-*.html
+# Generated output (keep demo_map.html out of repo — regenerated at runtime)
+# output/
+# *.html
 
-# Sample / generated GeoJSON data
-data/*.geojson
+# Sample GeoJSON data is committed so Render has it at deploy time
+# data/*.geojson
 
 # Python
 __pycache__/

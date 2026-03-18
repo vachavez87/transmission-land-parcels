@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Map — Transmission Parcel System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: #1a1d27;
+      border-bottom: 1px solid #2a2d3e;
+      position: relative;
+      z-index: 1000;
+    }
+    nav .logo { font-weight: 700; font-size: 15px; color: #3b82f6; }
+    nav .logo span { color: #06b6d4; }
+    nav a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      transition: background .15s, color .15s;
+    }
+    nav a:hover { background: rgba(59,130,246,.15); color: #3b82f6; }
+    nav a.active { color: #3b82f6; }
+
+    .hint {
+      background: rgba(59,130,246,.1);
+      border: 1px solid rgba(59,130,246,.25);
+      color: #93c5fd;
+      font-size: 12px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .hint strong { color: #e2e8f0; font-weight: 600; }
+    .hl { color: #fbbf24; font-weight: 600; }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: calc(100vh - 88px);
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">⚡ Transmission<span>Parcels</span></div>
+  <a href="/">Dashboard</a>
+  <a href="/map" class="active">Interactive Map</a>
+  <a href="/api/parcels/for-sale" target="_blank">For Sale API</a>
+</nav>
+
+<div class="hint">
+  <span>🗺️</span>
+  <strong>Layer control</strong> (top-right) — toggle corridors, centerlines and priority tiers ·
+  <span class="hl">Click any parcel</span> for full score breakdown ·
+  Parcels coloured by priority:
+  <span style="color:#ef9a9a">■ CRITICAL</span>
+  <span style="color:#ffcc80">■ HIGH</span>
+  <span style="color:#fff176">■ MEDIUM</span>
+  <span style="color:#a5d6a7">■ LOW</span>
+</div>
+
+<iframe src="/output/demo_map.html" title="Transmission Parcel Map"></iframe>
+
+</body>
+</html>

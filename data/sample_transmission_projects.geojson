@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "sample_transmission_projects",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "project_id": "MISO-2024-001", "name": "Midwest 500kV Backbone Expansion", "rto": "MISO", "voltage_kv": 500, "line_type": "AC", "status": "Approved – Environmental Review", "length_miles": 248, "estimated_cost_m": 1200, "expected_cod": "2027-Q3", "states": "MO, IL, IN" }, "geometry": { "type": "LineString", "coordinates": [ [ -90.2, 38.62 ], [ -89.8, 38.75 ], [ -89.3, 38.85 ], [ -88.7, 39.0 ], [ -88.1, 39.15 ], [ -87.6, 39.35 ], [ -87.0, 39.55 ], [ -86.9, 39.7 ] ] } },
+{ "type": "Feature", "properties": { "project_id": "PJM-2024-047", "name": "Ohio–Pennsylvania Grid Reliability Line", "rto": "PJM", "voltage_kv": 345, "line_type": "AC", "status": "FERC Application Filed", "length_miles": 162, "estimated_cost_m": 680, "expected_cod": "2027-Q1", "states": "PA, OH" }, "geometry": { "type": "LineString", "coordinates": [ [ -80.0, 40.44 ], [ -81.0, 40.3 ], [ -81.7, 40.15 ], [ -82.5, 40.0 ], [ -83.0, 39.96 ] ] } },
+{ "type": "Feature", "properties": { "project_id": "ERCOT-2024-012", "name": "West Texas Renewable Export Corridor", "rto": "ERCOT", "voltage_kv": 345, "line_type": "AC", "status": "Notice to Proceed Issued", "length_miles": 315, "estimated_cost_m": 890, "expected_cod": "2026-Q4", "states": "TX" }, "geometry": { "type": "LineString", "coordinates": [ [ -102.1, 31.9 ], [ -101.2, 31.6 ], [ -100.1, 31.3 ], [ -99.0, 31.0 ], [ -98.4, 30.6 ], [ -98.3, 29.5 ] ] } }
+]
+}
