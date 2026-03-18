@@ -19,7 +19,6 @@ Run
 import json
 import logging
 import os
-import threading
 from pathlib import Path
 
 import geopandas as gpd
@@ -48,8 +47,6 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ── global pipeline state (loaded once on startup) ─────────────────────────
 _state: dict = {}
-_pipeline_ready = False
-_pipeline_error: str = ""
 
 
 def _run_pipeline() -> None:
@@ -102,8 +99,6 @@ def _run_pipeline() -> None:
         ),
     }
     logger.info("Pipeline complete. %d parcels scored.", len(scored))
-    global _pipeline_ready
-    _pipeline_ready = True
 
 
 # ── helpers ────────────────────────────────────────────────────────────────
@@ -132,25 +127,13 @@ def _project_geojson(gdf: gpd.GeoDataFrame) -> dict:
 
 @app.route("/health")
 def health():
-    """Health check endpoint for Render — responds immediately."""
-    if _pipeline_ready:
-        return jsonify({"status": "ok"}), 200
-    return jsonify({"status": "starting"}), 200
+    """Health check endpoint for Render."""
+    return jsonify({"status": "ok"}), 200
 
 
 @app.route("/")
 def dashboard():
     """Main dashboard page."""
-    if not _pipeline_ready:
-        msg = "Pipeline initializing, please wait..."
-        if _pipeline_error:
-            msg = f"Pipeline error: {_pipeline_error}"
-        return (
-            f"<html><body style='background:#111;color:#0f0;font-family:monospace;padding:2rem'>"
-            f"<h2>{msg}</h2>"
-            f"{'<script>setTimeout(()=>location.reload(),4000)</script>' if not _pipeline_error else ''}"
-            f"</body></html>"
-        ), 200
     scored = _state.get("scored_gdf", gpd.GeoDataFrame())
     pc     = _state.get("priority_counts", {})
 
@@ -264,28 +247,11 @@ def api_refresh():
 
 
 # ── startup ────────────────────────────────────────────────────────────────
-def _pipeline_thread():
-    """Run pipeline in a background thread; called from gunicorn post_fork hook
-    (or directly when running with `python server.py`)."""
-    global _pipeline_error, _pipeline_ready
-    try:
-        _run_pipeline()
-    except Exception as exc:  # noqa: BLE001
-        _pipeline_error = str(exc)
-        logger.exception("Pipeline failed: %s", exc)
-    finally:
-        _pipeline_ready = True  # unblock dashboard regardless of outcome
+# Called at module import time. With gunicorn preload_app=True, this runs
+# once in the master process; forked workers inherit _state via copy-on-write.
+_run_pipeline()
 
-
-def start_pipeline_thread():
-    """Start the pipeline background thread. Called by gunicorn post_fork hook
-    so the thread runs inside the worker process (not the master)."""
-    threading.Thread(target=_pipeline_thread, daemon=True).start()
-
-
-# When running directly (python server.py), start the thread immediately.
 if __name__ == "__main__":
-    start_pipeline_thread()
     port = int(os.environ.get("PORT", 5000))
     print()
     print("  ╔════════════════════════════════════════════╗")
