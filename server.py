@@ -264,9 +264,9 @@ def api_refresh():
 
 
 # ── startup ────────────────────────────────────────────────────────────────
-# Run pipeline in a background thread so Flask can start immediately and
-# respond to Render's health checks before the heavy analysis finishes.
 def _pipeline_thread():
+    """Run pipeline in a background thread; called from gunicorn post_fork hook
+    (or directly when running with `python server.py`)."""
     global _pipeline_error, _pipeline_ready
     try:
         _run_pipeline()
@@ -277,9 +277,15 @@ def _pipeline_thread():
         _pipeline_ready = True  # unblock dashboard regardless of outcome
 
 
-threading.Thread(target=_pipeline_thread, daemon=True).start()
+def start_pipeline_thread():
+    """Start the pipeline background thread. Called by gunicorn post_fork hook
+    so the thread runs inside the worker process (not the master)."""
+    threading.Thread(target=_pipeline_thread, daemon=True).start()
 
+
+# When running directly (python server.py), start the thread immediately.
 if __name__ == "__main__":
+    start_pipeline_thread()
     port = int(os.environ.get("PORT", 5000))
     print()
     print("  ╔════════════════════════════════════════════╗")
