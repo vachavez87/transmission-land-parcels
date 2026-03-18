@@ -141,7 +141,15 @@ def health():
 def dashboard():
     """Main dashboard page."""
     if not _pipeline_ready:
-        return "<html><body style='background:#111;color:#0f0;font-family:monospace;padding:2rem'><h2>Pipeline initializing, please wait...</h2><script>setTimeout(()=>location.reload(),3000)</script></body></html>", 503
+        msg = "Pipeline initializing, please wait..."
+        if _pipeline_error:
+            msg = f"Pipeline error: {_pipeline_error}"
+        return (
+            f"<html><body style='background:#111;color:#0f0;font-family:monospace;padding:2rem'>"
+            f"<h2>{msg}</h2>"
+            f"{'<script>setTimeout(()=>location.reload(),4000)</script>' if not _pipeline_error else ''}"
+            f"</body></html>"
+        ), 200
     scored = _state.get("scored_gdf", gpd.GeoDataFrame())
     pc     = _state.get("priority_counts", {})
 
@@ -258,12 +266,14 @@ def api_refresh():
 # Run pipeline in a background thread so Flask can start immediately and
 # respond to Render's health checks before the heavy analysis finishes.
 def _pipeline_thread():
-    global _pipeline_error
+    global _pipeline_error, _pipeline_ready
     try:
         _run_pipeline()
     except Exception as exc:  # noqa: BLE001
         _pipeline_error = str(exc)
         logger.exception("Pipeline failed: %s", exc)
+    finally:
+        _pipeline_ready = True  # unblock dashboard regardless of outcome
 
 
 threading.Thread(target=_pipeline_thread, daemon=True).start()
